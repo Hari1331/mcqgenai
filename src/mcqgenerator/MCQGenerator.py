@@ -9,10 +9,18 @@ from src.mcqgenerator.logger import logging
 
 # importing necessary packages from langchain
 
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.chains import SequentialChain
+from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+
+from openai import BaseModel
+
+class M(BaseModel):
+    content: str
+    summary: str
+parser = JsonOutputParser(pydantic_object=M)
 
 # Load the KEY API KEY and load from .env file
 load_dotenv() 
@@ -37,7 +45,8 @@ quiz_generation_prompt = PromptTemplate(
     input_variables=["text", "number", "subject", "tone", "response_json"],
     template=template
     )
-
+#prompt = PromptTemplate.from_template(template)
+#summarizing_chain = prompt | llm | parser
 
 quiz_chain=LLMChain(llm=llm, prompt=quiz_generation_prompt, output_key="quiz", verbose=True)
 
@@ -53,6 +62,8 @@ Check from an expert English Writer of the above quiz:
 """
 
 quiz_evaluation_prompt=PromptTemplate(input_variables=["subject", "quiz"], template=template2)
+
+
 
 review_chain=LLMChain(llm=llm, prompt=quiz_evaluation_prompt, output_key="review", verbose=True)
 
