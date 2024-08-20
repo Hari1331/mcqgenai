@@ -5,15 +5,16 @@ import pandas as pd
 from dotenv import load_dotenv
 from src.mcqgenerator.utils import read_file,get_table_data
 import streamlit as st
+
 from langchain_community.callbacks import get_openai_callback
-from langchain.callbacks import get_openai_callback
+#from langchain.callbacks import get_openai_callback
 from src.mcqgenerator.MCQGenerator import generate_evaluate_chain
 from src.mcqgenerator.logger import logging
 
 
-
 #loading json file
 with open('/Users/hari31/OpenAI/mcqgenai/Response.json','r') as file:
+    #RESPONSE_JSON = json.loads(file)
     RESPONSE_JSON = json.load(file)
 
     #creating a title for the app
@@ -22,8 +23,9 @@ with open('/Users/hari31/OpenAI/mcqgenai/Response.json','r') as file:
     #create a form usig st.form
     with st.form("user_inputs"):
         #FileUpload
-        uploaded_file=file_uploader("Upload a PDF or TXT file")
+        uploaded_file = st.file_uploader("Upload a PDF or TXT file")
 
+        
         # Input Fields
         mcq_count=st.number_input("No. Of MCQs",min_value=3,max_value=50)
 
@@ -44,11 +46,11 @@ with open('/Users/hari31/OpenAI/mcqgenai/Response.json','r') as file:
                     text=read_file(uploaded_file)
                     # count tokens and the cost of api calls
                     with get_openai_callback() as cb:
-                        response=generate_evaluate_chain(
+                        response = generate_evaluate_chain(
                             {
-                                "text":text,
+                                "text": text,
                                  "number" : mcq_count,
-                                 "subject":subject,
+                                 "subject": subject,
                                  "tone": tone,
                                  "response_json": json.dumps(RESPONSE_JSON)
 
@@ -58,13 +60,15 @@ with open('/Users/hari31/OpenAI/mcqgenai/Response.json','r') as file:
                     traceback.print_exception(type(e), e, e.__traceback__)
                 st.error("Error")
 
-        else:
-             print(f"Total Tokens:{cb.total_tokens}")
-             print(f"Prompt Tokens:{cb.prompt_tokens}")
-             print(f"Completion Tokens:{cb.completion_tokens}")
-             print(f"Total cost:{cb.total_cost}")
-             if isinstance(response,dict):
-                 quiz=response.get("quiz",None)
+        #else:
+             #print(f"Total Tokens:{cb.total_tokens}")
+             #print(f"Prompt Tokens:{cb.prompt_tokens}")
+             #print(f"Completion Tokens:{cb.completion_tokens}")
+             #print(f"Total Cost:{cb.total_cost}")
+             
+
+            if isinstance(cb.response,dict):
+                 quiz = cb.response.get("quiz",None)
                  if quiz is not None:
                      table_data=get_table_data(quiz)
                      if table_data is not None:
